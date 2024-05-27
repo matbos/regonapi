@@ -75,7 +75,14 @@ class Client(object):
             self.headers.update({"sid": self._login()})
 
         service = getattr(self.service, action)
-        return service(*args, **kwargs)
+        response = service(*args, **kwargs)
+
+        if not response:
+            # Probably our credentials expired, login and retry
+            self.headers.update({"sid": self._login()})
+            response = service(*args, **kwargs)
+            
+        return response
 
     def _login(self) -> str:
         return self._call("Zaloguj", self.api_key)
